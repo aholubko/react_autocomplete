@@ -13,9 +13,17 @@ export const Autocomplete = ({ people, onSelected, delay = 300 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [appliedQuery, setAppliedQuery] = useState('');
 
-  const visiblePeople = people.filter(person =>
-    person.name.toLowerCase().includes(appliedQuery.toLowerCase()),
-  );
+  const normalizedQuery = appliedQuery.trim().toLowerCase();
+
+  let visiblePeople: Person[];
+
+  if (normalizedQuery === '') {
+    visiblePeople = people;
+  } else {
+    visiblePeople = people.filter(person =>
+      person.name.toLowerCase().includes(normalizedQuery),
+    );
+  }
 
   const applyQuery = useMemo(() => {
     return debounce((value: string) => {
@@ -47,6 +55,15 @@ export const Autocomplete = ({ people, onSelected, delay = 300 }: Props) => {
               }
 
               setQuery(value);
+              onSelected(null);
+
+              if (value.trim() === '') {
+                setAppliedQuery('');
+                applyQuery.cancel();
+
+                return;
+              }
+
               applyQuery(value);
             }}
             onFocus={() => setIsOpen(true)}
